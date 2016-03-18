@@ -1,5 +1,13 @@
+// npm install gulp -g
+// npm install bower -g
+// npm init
+// bower init
 
-var gulp = require('gulp');
+// npm i -D browserify browser-sync vinyl-source-stream jshint gulp gulp-concat gulp-uglify del gulp-sass gulp-postcss autoprefixer gulp-sourcemaps gulp-jshint lost bower-files
+
+// bower install jquery --save
+
+var gulp = require('gulp'),
 browserify = require('browserify'),
 source = require('vinyl-source-stream'),
 concat = require('gulp-concat'),
@@ -11,7 +19,15 @@ sass = require('gulp-sass'),
 sourcemaps = require('gulp-sourcemaps'),
 autoprefixer = require('autoprefixer'),
 lost = require('lost'),
-browserSync = require('browser-sync').create();
+browserSync = require('browser-sync').create(),
+lib = require('bower-files')();
+
+gulp.task('bowerJS', function () {
+  return gulp.src(lib.ext('js').files)
+    .pipe(concat('vendor.min.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest('./build/js'));
+});
 
 gulp.task('jshint', function(){
   return gulp.src(['js/*.js'])
@@ -32,20 +48,19 @@ gulp.task('jsBrowserify', ['concatInterface'] , function() {
     .pipe(gulp.dest('./build/js'));
 });
 
-gulp.task("minifyScripts", ["jsBrowserify"], function(){
-  return gulp.src("./build/js/app.js")
+gulp.task('minifyScripts', ['jsBrowserify'], function(){
+  return gulp.src('./build/js/app.js')
     .pipe(uglify())
-    .pipe(gulp.dest("./build/js"));
+    .pipe(gulp.dest('./build/js'));
 });
 
 
-gulp.task("clean", ["minifyScripts"], function(){
-  console.log('done');
+gulp.task('js', [ 'jshint' ,'minifyScripts'], function(){
   browserSync.reload();
   return del(['tmp']);
 });
 
-gulp.task('styles', function () {
+gulp.task('css', function () {
   var processors = [ autoprefixer, lost
   ];
   browserSync.reload();
@@ -57,22 +72,21 @@ gulp.task('styles', function () {
     .pipe(gulp.dest('./build/css'));
 });
 
-gulp.task('serve', function() {
+gulp.task('html', function(){
+  browserSync.reload();
+});
+
+gulp.task('serve', ['js', 'css', 'html'], function() {
   browserSync.init({
     server: {
-      baseDir: "./",
-      index: "index.html"
+      baseDir: './',
+      index: 'index.html'
     }
   });
 
-  gulp.task('html', function(){
-    browserSync.reload();
-  });
-
-  console.log("Watching js and scss files for modifications");
-  gulp.watch('js/*.js', ["clean"]);
-  gulp.watch('scss/*.scss', ["styles"]);
-  gulp.watch('index.html', ["html"]);
+  gulp.watch('js/*.js', ['js']);
+  gulp.watch('scss/*.scss', ['css']);
+  gulp.watch('index.html', ['html']);
 });
 
 gulp.task('default', ['serve']);
