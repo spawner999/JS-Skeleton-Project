@@ -6,10 +6,11 @@ class Greeter {
   }
 }
 
-var greeters = [];
+
+var greeters: Greeter[] = [];
 greeters.push(new Greeter('world 0'));
 greeters.push(new Greeter('world 1'));
-greeters.push(new Greeter('world 3'));
+greeters.push(new Greeter('world 2'));
 for (var greeter in greeters){
   console.log(greeters[greeter].greet());
 }
